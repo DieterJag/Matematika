@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="lt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>8 Klasės Matematikos Kurso Kartojimas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chosen Palette: Warm Neutrals -->
+    <!-- Application Structure Plan: A single-page application with a fixed sidebar for topic navigation and a main content area. The content area uses tabs ('Theory', 'Practice', 'Homework') to organize material for each selected topic. This structure is chosen for its clarity and ease of use for students, allowing them to focus on one topic and one task (learning, practicing) at a time without scrolling through a long page. Interaction is handled by simple show/hide JavaScript logic. -->
+    <!-- Visualization & Content Choices: Report Info: 5 math topics with theory and problems. Goal: Provide a structured learning and practice environment. Viz/Presentation Method: Content is organized into sections with clear headings, lists for problems, and styled blocks for formulas. The Pythagorean theorem includes a simple diagram built with HTML/CSS. Interaction: Sidebar navigation switches topics, tabs switch content type, and buttons reveal answers for practice problems. Justification: This approach is direct, avoids unnecessary complexity from charting libraries not suited for this content, and focuses on readability and interactive self-assessment. Library/Method: Vanilla JavaScript for all interactions. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .formula {
+            background-color: #f3f4f6;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            font-family: monospace;
+            font-size: 1.1rem;
+            color: #1f2937;
+            margin: 1rem 0;
+            overflow-x: auto;
+        }
+        .nav-link {
+            transition: all 0.2s ease-in-out;
+            border-left: 4px solid transparent;
+        }
+        .nav-link.active {
+            border-left-color: #4f46e5;
+            background-color: #eef2ff;
+            color: #4338ca;
+            font-weight: 600;
+        }
+        .nav-link:hover {
+            background-color: #f3f4f6;
+            border-left-color: #a5b4fc;
+        }
+        .tab-button {
+            transition: all 0.2s ease-in-out;
+            border-bottom: 2px solid transparent;
+        }
+        .tab-button.active {
+            border-bottom-color: #4f46e5;
+            color: #4f46e5;
+            font-weight: 600;
+        }
+        .content-section, .topic-content {
+            display: none;
+        }
+        .content-section.active, .topic-content.active {
+            display: block;
+        }
+        .triangle-diagram {
+            position: relative;
+            width: 150px;
+            height: 120px;
+            margin: 2rem auto;
+        }
+        .triangle {
+            width: 0;
+            height: 0;
+            border-bottom: 120px solid #a5b4fc;
+            border-right: 150px solid transparent;
+        }
+        .label-a {
+            position: absolute;
+            bottom: 60px;
+            left: -20px;
+        }
+        .label-b {
+            position: absolute;
+            bottom: -20px;
+            left: 75px;
+        }
+        .label-c {
+            position: absolute;
+            top: 40px;
+            left: 60px;
+            transform: rotate(-38deg);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+    <div id="app" class="min-h-screen flex flex-col md:flex-row">
+        
+        <aside class="w-full md:w-64 bg-white border-r border-slate-200 p-4 md:p-6 shrink-0">
+            <h1 class="text-xl font-bold text-indigo-700 mb-6">Matematikos Kartojimas</h1>
+            <nav id="topic-nav">
+                <ul class="space-y-2">
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="flex-1 p-4 md:p-8 overflow-y-auto">
+            <div id="content-container">
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const data = {
+            topics: [
+                {
+                    id: 'laipsniai',
+                    title: 'Laipsniai ir jų savybės',
+                    theory: `
+                        <p class="mb-4">Skaičiaus kėlimas laipsniu yra kartotinė daugyba. Laipsnio pagrindas yra skaičius, kurį dauginame, o laipsnio rodiklis parodo, kiek kartų pagrindą dauginame iš savęs.</p>
+                        <div class="formula">a<sup>n</sup> = a × a × ... × a (n kartų)</div>
+                        <h3 class="text-lg font-semibold mt-6 mb-2">Pagrindinės savybės:</h3>
+                        <ul class="list-disc list-inside space-y-2">
+                            <li><strong>Vienodų pagrindų laipsnių daugyba:</strong> Dauginant laipsnius su vienodais pagrindais, pagrindas paliekamas tas pats, o laipsnių rodikliai sudedami.
+                                <div class="formula">a<sup>m</sup> × a<sup>n</sup> = a<sup>m+n</sup></div>
+                            </li>
+                            <li><strong>Vienodų pagrindų laipsnių dalyba:</strong> Dalinant laipsnius su vienodais pagrindais, pagrindas paliekamas tas pats, o laipsnių rodikliai atimami.
+                                <div class="formula">a<sup>m</sup> / a<sup>n</sup> = a<sup>m-n</sup></div>
+                            </li>
+                            <li><strong>Laipsnio kėlimas laipsniu:</strong> Keliant laipsnį laipsniu, pagrindas paliekamas tas pats, o laipsnių rodikliai sudauginami.
+                                <div class="formula">(a<sup>m</sup>)<sup>n</sup> = a<sup>m×n</sup></div>
+                            </li>
+                            <li><strong>Sandaugos kėlimas laipsniu:</strong> Keliant sandaugą laipsniu, kiekvienas dauginamasis keliamas tuo pačiu laipsniu.
+                                <div class="formula">(a × b)<sup>n</sup> = a<sup>n</sup> × b<sup>n</sup></div>
+                            </li>
+                            <li><strong>Nulinis laipsnio rodiklis:</strong> Bet kuris skaičius (išskyrus 0), pakeltas nuliniu laipsniu, lygus 1.
+                                <div class="formula">a<sup>0</sup> = 1 (kai a ≠ 0)</div>
+                            </li>
+                            <li><strong>Neigiamas laipsnio rodiklis:</strong> Skaičius su neigiamu laipsnio rodikliu yra lygus vienetui, padalintam iš to paties skaičiaus su teigiamu laipsnio rodikliu.
+                                <div class="formula">a<sup>-n</sup> = 1 / a<sup>n</sup></div>
+                            </li>
+                        </ul>
+                    `,
+                    practice: [
+                        { q: 'Apskaičiuokite: 2<sup>3</sup> × 2<sup>2</sup>', a: '2<sup>3+2</sup> = 2<sup>5</sup> = 32' },
+                        { q: 'Apskaičiuokite: 5<sup>7</sup> / 5<sup>5</sup>', a: '5<sup>7-5</sup> = 5<sup>2</sup> = 25' },
+                        { q: 'Apskaičiuokite: (3<sup>2</sup>)<sup>2</sup>', a: '3<sup>2×2</sup> = 3<sup>4</sup> = 81' },
+                        { q: 'Apskaičiuokite: 10<sup>0</sup>', a: '1' },
+                        { q: 'Apskaičiuokite: 4<sup>-2</sup>', a: '1 / 4<sup>2</sup> = 1/16' },
+                        { q: 'Suprastinkite: x<sup>5</sup> × x<sup>-3</sup>', a: 'x<sup>5-3</sup> = x<sup>2</sup>' },
+                        { q: 'Suprastinkite: (y<sup>4</sup>)<sup>3</sup>', a: 'y<sup>4×3</sup> = y<sup>12</sup>' },
+                        { q: 'Apskaičiuokite: (2 × 5)<sup>2</sup>', a: '2<sup>2</sup> × 5<sup>2</sup> = 4 × 25 = 100' },
+                        { q: 'Apskaičiuokite: (1/3)<sup>-1</sup>', a: '3<sup>1</sup> = 3' },
+                        { q: 'Suprastinkite: (a<sup>-2</sup>b<sup>3</sup>)<sup>2</sup>', a: 'a<sup>-4</sup>b<sup>6</sup> = b<sup>6</sup>/a<sup>4</sup>' },
+                        { q: 'Apskaičiuokite: 7<sup>1</sup>', a: '7' },
+                        { q: 'Apskaičiuokite: (-2)<sup>3</sup>', a: '-8' },
+                        { q: 'Apskaičiuokite: (-3)<sup>4</sup>', a: '81' },
+                        { q: 'Suprastinkite: (c<sup>8</sup> / c<sup>2</sup>) × c', a: 'c<sup>6</sup> × c<sup>1</sup> = c<sup>7</sup>' },
+                        { q: 'Apskaičiuokite: 9<sup>-1</sup> + 9<sup>0</sup>', a: '1/9 + 1 = 10/9' },
+                        { q: 'Suprastinkite: (2x<sup>2</sup>)<sup>3</sup>', a: '2<sup>3</sup>(x<sup>2</sup>)<sup>3</sup> = 8x<sup>6</sup>' },
+                        { q: 'Kuris skaičius didesnis: 2<sup>10</sup> ar 10<sup>3</sup>?', a: '2<sup>10</sup> = 1024, 10<sup>3</sup> = 1000. Didesnis yra 2<sup>10</sup>.' },
+                        { q: 'Apskaičiuokite: (0.5)<sup>-3</sup>', a: '(1/2)<sup>-3</sup> = 2<sup>3</sup> = 8' },
+                        { q: 'Suprastinkite: (a<sup>3</sup> / b<sup>2</sup>)<sup>-2</sup>', a: '(b<sup>2</sup> / a<sup>3</sup>)<sup>2</sup> = b<sup>4</sup> / a<sup>6</sup>' },
+                        { q: 'Apskaičiuokite: 1<sup>100</sup> - (-1)<sup>101</sup>', a: '1 - (-1) = 1 + 1 = 2' },
+                    ],
+                    homework: [
+                        { q: 'Apskaičiuokite: (4<sup>-1</sup> + 2<sup>-2</sup>)<sup>-1</sup>', a: '(1/4 + 1/4)<sup>-1</sup> = (2/4)<sup>-1</sup> = (1/2)<sup>-1</sup> = 2' },
+                        { q: 'Suprastinkite: (x<sup>2n+1</sup> / x<sup>n-1</sup>)', a: 'x<sup>(2n+1) - (n-1)</sup> = x<sup>n+2</sup>' },
+                        { q: 'Apskaičiuokite: 3<sup>5</sup> × 9<sup>-2</sup>', a: '3<sup>5</sup> × (3<sup>2</sup>)<sup>-2</sup> = 3<sup>5</sup> × 3<sup>-4</sup> = 3<sup>1</sup> = 3' },
+                        { q: 'Suprastinkite: ((a<sup>2</sup>)<sup>3</sup> × a<sup>4</sup>) / a<sup>10</sup>', a: '(a<sup>6</sup> × a<sup>4</sup>) / a<sup>10</sup> = a<sup>10</sup> / a<sup>10</sup> = 1' },
+                        { q: 'Išreikškite skaičių 128 kaip dvejeto laipsnį.', a: '128 = 2<sup>7</sup>' },
+                    ]
+                },
+                {
+                    id: 'pitagoras',
+                    title: 'Pitagoro teorema',
+                    theory: `
+                        <p class="mb-4">Pitagoro teorema taikoma tik stačiajam trikampiui. Ji teigia, kad statinių kvadratų suma yra lygi įžambinės kvadratui.</p>
+                        <div class="triangle-diagram">
+                            <div class="triangle"></div>
+                            <span class="label-a font-semibold">a</span>
+                            <span class="label-b font-semibold">b</span>
+                            <span class="label-c font-semibold">c</span>
+                        </div>
+                        <p class="mb-4 text-center">Trikampio kraštinės, kurios sudaro statųjį kampą, vadinamos <strong>statiniais</strong> (a, b). Kraštinė priešais statųjį kampą vadinama <strong>įžambine</strong> (c).</p>
+                        <div class="formula">a<sup>2</sup> + b<sup>2</sup> = c<sup>2</sup></div>
+                        <h3 class="text-lg font-semibold mt-6 mb-2">Teoremos išvados:</h3>
+                        <ul class="list-disc list-inside space-y-2">
+                            <li>Norint rasti įžambinę, kai žinomi statiniai: <div class="formula">c = √(a<sup>2</sup> + b<sup>2</sup>)</div></li>
+                            <li>Norint rasti statinį, kai žinoma įžambinė ir kitas statinis: <div class="formula">a = √(c<sup>2</sup> - b<sup>2</sup>)</div></li>
+                        </ul>
+                    `,
+                    practice: [
+                        { q: 'Statiniai yra 3 cm ir 4 cm. Raskite įžambinę.', a: 'c² = 3² + 4² = 9 + 16 = 25. c = √25 = 5 cm.' },
+                        { q: 'Įžambinė yra 13 cm, vienas statinis - 5 cm. Raskite kitą statinį.', a: 'b² = 13² - 5² = 169 - 25 = 144. b = √144 = 12 cm.' },
+                        { q: 'Statiniai yra 8 m ir 15 m. Raskite įžambinę.', a: 'c² = 8² + 15² = 64 + 225 = 289. c = √289 = 17 m.' },
+                        { q: 'Ar trikampis, kurio kraštinės 6, 8, 10, yra statusis?', a: 'Taip, nes 6² + 8² = 36 + 64 = 100, o 10² = 100.' },
+                        { q: 'Ar trikampis, kurio kraštinės 5, 6, 7, yra statusis?', a: 'Ne, nes 5² + 6² = 25 + 36 = 61, o 7² = 49. 61 ≠ 49.' },
+                        { q: 'Stačiojo trikampio statiniai lygūs. Įžambinė lygi 10√2. Raskite statinius.', a: 'a² + a² = (10√2)². 2a² = 100 × 2 = 200. a² = 100. a = 10.' },
+                        { q: 'Stačiakampio kraštinės yra 7 cm ir 24 cm. Raskite įstrižainę.', a: 'Įstrižainė yra stačiojo trikampio įžambinė. d² = 7² + 24² = 49 + 576 = 625. d = √625 = 25 cm.' },
+                        { q: 'Kvadrato įstrižainė lygi 8 cm. Raskite kraštinę.', a: 'a² + a² = 8². 2a² = 64. a² = 32. a = √32 = 4√2 cm.' },
+                        { q: 'Lygiašonio trikampio šoninė kraštinė 10, pagrindas 12. Raskite aukštinę.', a: 'Aukštinė dalija pagrindą pusiau (6). h² = 10² - 6² = 100 - 36 = 64. h = 8.' },
+                        { q: 'Statiniai yra 1 ir 2. Raskite įžambinę.', a: 'c² = 1² + 2² = 1 + 4 = 5. c = √5.' },
+                        { q: 'Įžambinė 25, vienas statinis 20. Raskite kitą statinį.', a: 'b² = 25² - 20² = 625 - 400 = 225. b = 15.' },
+                        { q: 'Rombo įstrižainės yra 10 ir 24. Raskite rombo kraštinę.', a: 'Įstrižainės dalija rombą į 4 stačiuosius trikampius. Statiniai yra 5 ir 12. a² = 5² + 12² = 25 + 144 = 169. a = 13.' },
+                        { q: 'Statusis trikampis, kurio vienas kampas 45°. Statinis 5 cm. Raskite įžambinę.', a: 'Tai lygiašonis statusis trikampis. Kitas statinis irgi 5 cm. c² = 5² + 5² = 50. c = √50 = 5√2 cm.' },
+                        { q: 'Statiniai yra √3 ir √6. Raskite įžambinę.', a: 'c² = (√3)² + (√6)² = 3 + 6 = 9. c = 3.' },
+                        { q: 'Apskaičiuokite stačiojo trikampio perimetrą, jei jo statiniai 9 ir 12.', a: 'c² = 9² + 12² = 81 + 144 = 225. c=15. P = 9 + 12 + 15 = 36.' },
+                        { q: 'Pastatas meta 20 m šešėlį. Atstumas nuo pastato viršūnės iki šešėlio pabaigos yra 25 m. Koks pastato aukštis?', a: 'h² = 25² - 20² = 625 - 400 = 225. h = 15 m.' },
+                        { q: 'Įžambinė 41, statinis 40. Raskite kitą statinį.', a: 'b² = 41² - 40² = 1681 - 1600 = 81. b = 9.' },
+                        { q: 'Ar trikampis, kurio kraštinės 2, 3, 4, yra statusis?', a: 'Ne. 2² + 3² = 4 + 9 = 13. 4² = 16. 13 ≠ 16.' },
+                        { q: 'Apskritimo styga, kurios ilgis 16 cm, nutolusi nuo centro per 6 cm. Raskite apskritimo spindulį.', a: 'Spindulys, statmuo stygai ir pusė stygos sudaro statųjį trikampį. r² = 8² + 6² = 64 + 36 = 100. r = 10 cm.' },
+                        { q: 'Stačiojo trikampio plotas 30, vienas statinis 5. Raskite įžambinę.', a: 'S = (a*b)/2 => 30 = (5*b)/2 => 60 = 5b => b = 12. c² = 5² + 12² = 25 + 144 = 169. c = 13.' },
+                    ],
+                    homework: [
+                        { q: 'Stačiojo lygiašonio trikampio įžambinė lygi 14. Raskite statinio ilgį.', a: 'a² + a² = 14². 2a² = 196. a² = 98. a = √98 = 7√2.' },
+                        { q: 'Raskite stačiakampio įstrižainę, jei jo perimetras 34 cm, o viena kraštinė 5 cm.', a: '2(5+b) = 34 => 5+b=17 => b=12. d² = 5² + 12² = 169. d = 13 cm.' },
+                        { q: 'Nuo 10 m aukščio stulpo viršūnės nutiestas 26 m ilgio laidas. Koks atstumas nuo stulpo pagrindo iki laido įtvirtinimo taško?', a: 'x² = 26² - 10² = 676 - 100 = 576. x = √576 = 24 m.' },
+                        { q: 'Ar trikampis, kurio kraštinės 20, 21, 29, yra statusis?', a: 'Taip. 20² + 21² = 400 + 441 = 841. 29² = 841.' },
+                        { q: 'Lygiašonės trapecijos pagrindai 10 ir 20, o šoninė kraštinė 13. Raskite aukštinę.', a: 'Aukštinė, šoninė kraštinė ir atkarpa (20-10)/2=5 sudaro statųjį trikampį. h² = 13² - 5² = 169 - 25 = 144. h = 12.' },
+                    ]
+                },
+                {
+                    id: 'lygtys',
+                    title: 'Lygčių sprendimas',
+                    theory: `
+                        <p class="mb-4">Lygtis yra lygybė, kurioje yra nežinomasis, pažymėtas raide (dažniausiai x). Išspręsti lygtį reiškia rasti visas nežinomojo reikšmes, su kuriomis lygybė yra teisinga.</p>
+                        <h3 class="text-lg font-semibold mt-6 mb-2">Pagrindiniai lygčių sprendimo žingsniai (tiesinėms lygtims):</h3>
+                        <ol class="list-decimal list-inside space-y-2">
+                            <li><strong>Atskliausti skliaustus:</strong> Jei lygtyje yra skliaustų, juos atskliaudžiame, taikydami daugybos dėsnius.</li>
+                            <li><strong>Subendravardiklinti:</strong> Jei lygtyje yra trupmenų, subendravardikliname arba padauginame visą lygtį iš bendro vardiklio, kad jų neliktų.</li>
+                            <li><strong>Sukelti nežinomuosius į vieną pusę:</strong> Narius su nežinomuoju perkeliame į vieną lygties pusę, o laisvuosius narius (skaičius) - į kitą. Keliant narį per lygybės ženklą, jo ženklas keičiasi į priešingą.</li>
+                            <li><strong>Sutraukti panašiuosius narius:</strong> Suprastiname abi lygties puses.</li>
+                            <li><strong>Rasti nežinomąjį:</strong> Abi lygties puses padalijame iš koeficiento prie nežinomojo.</li>
+                        </ol>
+                        <h4 class="text-md font-semibold mt-4 mb-2">Pavyzdys:</h4>
+                        <div class="formula">3(x - 2) = 12 - x</div>
+                        <ul class="list-inside space-y-1">
+                            <li>1. Atskliaudžiame: <span class="font-mono">3x - 6 = 12 - x</span></li>
+                            <li>2. Perkeliame narius: <span class="font-mono">3x + x = 12 + 6</span></li>
+                            <li>3. Sutraukiame: <span class="font-mono">4x = 18</span></li>
+                            <li>4. Dalijame: <span class="font-mono">x = 18 / 4</span></li>
+                            <li>5. Suprastiname: <span class="font-mono">x = 4.5</span></li>
+                        </ul>
+                    `,
+                    practice: [
+                        { q: 'Išspręskite: 2x + 5 = 11', a: '2x = 11 - 5; 2x = 6; x = 3.' },
+                        { q: 'Išspręskite: 5x - 3 = 2x + 9', a: '5x - 2x = 9 + 3; 3x = 12; x = 4.' },
+                        { q: 'Išspręskite: 4(x + 1) = 20', a: '4x + 4 = 20; 4x = 16; x = 4.' },
+                        { q: 'Išspręskite: x / 3 = 7', a: 'x = 7 * 3; x = 21.' },
+                        { q: 'Išspręskite: 10 - 3x = 1', a: '-3x = 1 - 10; -3x = -9; x = 3.' },
+                        { q: 'Išspręskite: 7x = 0', a: 'x = 0 / 7; x = 0.' },
+                        { q: 'Išspręskite: 2(x - 3) = 3(x - 2)', a: '2x - 6 = 3x - 6; 2x - 3x = -6 + 6; -x = 0; x = 0.' },
+                        { q: 'Išspręskite: (x + 5) / 2 = 8', a: 'x + 5 = 16; x = 11.' },
+                        { q: 'Išspręskite: 0.5x = 10', a: 'x = 10 / 0.5; x = 20.' },
+                        { q: 'Išspręskite: x - 5 = -12', a: 'x = -12 + 5; x = -7.' },
+                        { q: 'Išspręskite: 5 - x = x - 5', a: '5 + 5 = x + x; 10 = 2x; x = 5.' },
+                        { q: 'Išspręskite: 8y + 12 = 5y - 3', a: '8y - 5y = -3 - 12; 3y = -15; y = -5.' },
+                        { q: 'Išspręskite: x/2 + x/4 = 6', a: 'Padauginam iš 4: 2x + x = 24; 3x = 24; x = 8.' },
+                        { q: 'Išspręskite: 2(x-1) - (x-2) = 3', a: '2x - 2 - x + 2 = 3; x = 3.' },
+                        { q: 'Išspręskite: x<sup>2</sup> = 49', a: 'x = 7 arba x = -7.' },
+                        { q: 'Išspręskite: 3(z - 1) = 3z - 3', a: '3z - 3 = 3z - 3; 0 = 0. Visi realieji skaičiai yra sprendiniai.' },
+                        { q: 'Išspręskite: 2x = 2x + 5', a: '0 = 5. Sprendinių nėra.' },
+                        { q: 'Išspręskite: 1.2x - 0.8 = 0.4', a: '1.2x = 1.2; x = 1.' },
+                        { q: 'Išspręskite: (x-1)(x+2) = 0', a: 'x-1=0 arba x+2=0. Sprendiniai: x=1, x=-2.' },
+                        { q: 'Išspręskite: 100 / x = 25', a: '100 = 25x; x = 4.' },
+                    ],
+                    homework: [
+                        { q: 'Išspręskite: 5(x + 2) - 2(x - 1) = 24', a: '5x + 10 - 2x + 2 = 24; 3x + 12 = 24; 3x = 12; x = 4.' },
+                        { q: 'Išspręskite: x/3 - 1 = x/4', a: 'Padauginam iš 12: 4x - 12 = 3x; 4x - 3x = 12; x = 12.' },
+                        { q: 'Išspręskite: (x-3)<sup>2</sup> = x<sup>2</sup> + 9', a: 'x²-6x+9=x²+9; -6x=0; x=0.' },
+                        { q: 'Stačiakampio perimetras 40 cm. Viena kraštinė 4 cm ilgesnė už kitą. Raskite kraštines.', a: 'x ir x+4. 2(x + x+4) = 40; 2(2x+4)=40; 4x+8=40; 4x=32; x=8. Kraštinės 8 cm ir 12 cm.' },
+                        { q: 'Išspręskite: 8 - 2(x + 1) = 4', a: '8 - 2x - 2 = 4; 6 - 2x = 4; -2x = -2; x = 1.' },
+                    ]
+                },
+                {
+                    id: 'prastinimas',
+                    title: 'Raidinių reiškinių prastinimas',
+                    theory: `
+                        <p class="mb-4">Raidinių reiškinių prastinimas - tai veiksmų atlikimas, siekiant gauti paprastesnį, bet ekvivalentų reiškinį. Tam naudojami algebros dėsniai ir formulės.</p>
+                        <h3 class="text-lg font-semibold mt-6 mb-2">Pagrindiniai veiksmai:</h3>
+                        <ul class="list-disc list-inside space-y-2">
+                            <li><strong>Panašiųjų narių sutraukimas:</strong> Sudedami arba atimami nariai, turintys tą pačią raidinę dalį. Pvz.: <span class="font-mono">3x + 2y - x + 5y = 2x + 7y</span>.</li>
+                            <li><strong>Skliaustų atskliaudimas:</strong> Taikomas skirstomumo (distributyvumo) dėsnis. Pvz.: <span class="font-mono">a(b + c) = ab + ac</span>.</li>
+                        </ul>
+                        <h3 class="text-lg font-semibold mt-6 mb-2">Greitosios daugybos formulės:</h3>
+                        <p class="mb-4">Šios formulės padeda greičiau atskliausti tam tikro tipo reiškinius.</p>
+                        <ul class="list-disc list-inside space-y-2">
+                            <li><strong>Kvadrato suma:</strong> <div class="formula">(a + b)<sup>2</sup> = a<sup>2</sup> + 2ab + b<sup>2</sup></div></li>
+                            <li><strong>Kvadrato skirtumas:</strong> <div class="formula">(a - b)<sup>2</sup> = a<sup>2</sup> - 2ab + b<sup>2</sup></div></li>
+                            <li><strong>Kvadratų skirtumas:</strong> <div class="formula">(a - b)(a + b) = a<sup>2</sup> - b<sup>2</sup></div></li>
+                        </ul>
+                    `,
+                    practice: [
+                        { q: 'Suprastinkite: 5a + 3b - 2a + b', a: '3a + 4b' },
+                        { q: 'Atskliauskite: 4(x - 3)', a: '4x - 12' },
+                        { q: 'Panaudokite formulę: (x + 3)<sup>2</sup>', a: 'x<sup>2</sup> + 6x + 9' },
+                        { q: 'Panaudokite formulę: (y - 5)<sup>2</sup>', a: 'y<sup>2</sup> - 10y + 25' },
+                        { q: 'Panaudokite formulę: (a - 4)(a + 4)', a: 'a<sup>2</sup> - 16' },
+                        { q: 'Suprastinkite: (x + 1)(x - 2)', a: 'x<sup>2</sup> - 2x + x - 2 = x<sup>2</sup> - x - 2' },
+                        { q: 'Suprastinkite: 2(a+b) - (2a-b)', a: '2a + 2b - 2a + b = 3b' },
+                        { q: 'Iškelkite bendrą daugiklį: 5x + 10y', a: '5(x + 2y)' },
+                        { q: 'Iškelkite bendrą daugiklį: a<sup>2</sup> - a', a: 'a(a - 1)' },
+                        { q: 'Panaudokite formulę: (2x + 1)<sup>2</sup>', a: '(2x)<sup>2</sup> + 2*2x*1 + 1<sup>2</sup> = 4x<sup>2</sup> + 4x + 1' },
+                        { q: 'Suprastinkite: 7x - (3x + 4)', a: '7x - 3x - 4 = 4x - 4' },
+                        { q: 'Panaudokite formulę: (3 - c)(3 + c)', a: '9 - c<sup>2</sup>' },
+                        { q: 'Suprastinkite: (a+b)<sup>2</sup> - (a-b)<sup>2</sup>', a: '(a²+2ab+b²) - (a²-2ab+b²) = 4ab' },
+                        { q: 'Išskaidykite dauginamaisiais: x<sup>2</sup> - 81', a: '(x - 9)(x + 9)' },
+                        { q: 'Suprastinkite: 5y * 3y<sup>2</sup>', a: '15y<sup>3</sup>' },
+                        { q: 'Iškelkite bendrą daugiklį: 6ab + 9a', a: '3a(2b + 3)' },
+                        { q: 'Panaudokite formulę: (10 - y)<sup>2</sup>', a: '100 - 20y + y<sup>2</sup>' },
+                        { q: 'Suprastinkite: -2(x - y + z)', a: '-2x + 2y - 2z' },
+                        { q: 'Išskaidykite dauginamaisiais: 4x<sup>2</sup> - 25', a: '(2x - 5)(2x + 5)' },
+                        { q: 'Suprastinkite: x(x+1) - (x-1)', a: 'x<sup>2</sup> + x - x + 1 = x<sup>2</sup> + 1' },
+                    ],
+                    homework: [
+                        { q: 'Suprastinkite: (2x - 3)<sup>2</sup> - 4x(x - 3)', a: '(4x² - 12x + 9) - (4x² - 12x) = 4x² - 12x + 9 - 4x² + 12x = 9' },
+                        { q: 'Išskaidykite dauginamaisiais: 1 - 49y<sup>2</sup>', a: '(1 - 7y)(1 + 7y)' },
+                        { q: 'Suprastinkite reiškinį (a - 5)(a + 5) - a(a - 2) ir apskaičiuokite jo reikšmę, kai a = -0.5.', a: '(a² - 25) - (a² - 2a) = a² - 25 - a² + 2a = 2a - 25. Kai a=-0.5: 2(-0.5) - 25 = -1 - 25 = -26.' },
+                        { q: 'Panaudokite formulę: (a<sup>2</sup> + b)<sup>2</sup>', a: '(a<sup>2</sup>)<sup>2</sup> + 2a<sup>2</sup>b + b<sup>2</sup> = a<sup>4</sup> + 2a<sup>2</sup>b + b<sup>2</sup>' },
+                        { q: 'Įrodykite tapatybę: (x + y)<sup>2</sup> - 2xy = x<sup>2</sup> + y<sup>2</sup>', a: 'x<sup>2</sup> + 2xy + y<sup>2</sup> - 2xy = x<sup>2</sup> + y<sup>2</sup>. Kairė pusė lygi dešinei.' },
+                    ]
+                },
+                {
+                    id: 'apibendrinimas',
+                    title: 'Apibendrinamoji pamoka',
+                    theory: `
+                        <p class="mb-4">Šioje pamokoje apjungsime visas anksčiau nagrinėtas temas. Uždaviniai bus įvairūs, reikalaujantys pritaikyti laipsnių savybes, Pitagoro teoremą, spręsti lygtis ir prastinti reiškinius. Tai puiki proga pasitikrinti savo žinias ir įgūdžius.</p>
+                        <h3 class="text-lg font-semibold mt-6 mb-2">Prisiminkime:</h3>
+                        <ul class="list-disc list-inside space-y-2">
+                            <li><strong>Laipsniai:</strong> Dėmesį atkreipkite į neigiamus ir nulinius laipsnio rodiklius.</li>
+                            <li><strong>Pitagoro teorema:</strong> Atminkite, kad ji taikoma tik stačiajam trikampiui ir kaip rasti kiekvieną iš kraštinių.</li>
+                            <li><strong>Lygtys:</strong> Laikykitės sprendimo žingsnių nuoseklumo.</li>
+                            <li><strong>Reiškiniai:</strong> Nepamirškite greitosios daugybos formulių - jos labai palengvina darbą.</li>
+                        </ul>
+                    `,
+                    practice: [
+                        { q: 'Apskaičiuokite: 3<sup>-1</sup> + (1/2)<sup>-2</sup>', a: '1/3 + 2² = 1/3 + 4 = 13/3.' },
+                        { q: 'Stačiojo trikampio statiniai yra 10 ir 24. Raskite įžambinės ilgį.', a: 'c² = 10² + 24² = 100 + 576 = 676. c = √676 = 26.' },
+                        { q: 'Išspręskite lygtį: 3(x - 4) = x', a: '3x - 12 = x; 2x = 12; x = 6.' },
+                        { q: 'Suprastinkite: (x - 6)(x + 6) - x<sup>2</sup>', a: '(x² - 36) - x² = -36.' },
+                        { q: 'Suprastinkite: (a<sup>5</sup>)<sup>2</sup> / a<sup>7</sup>', a: 'a<sup>10</sup> / a<sup>7</sup> = a<sup>3</sup>.' },
+                        { q: 'Rombo įstrižainės 12 cm ir 16 cm. Raskite rombo perimetrą.', a: 'Kraštinė a² = (12/2)² + (16/2)² = 6² + 8² = 36+64=100; a=10. P = 4*10 = 40 cm.' },
+                        { q: 'Išspręskite: (x-2)/5 = (x+2)/7', a: '7(x-2) = 5(x+2); 7x-14=5x+10; 2x=24; x=12.' },
+                        { q: 'Suprastinkite: (y + 4)<sup>2</sup> - 8y', a: 'y² + 8y + 16 - 8y = y² + 16.' },
+                        { q: 'Apskaičiuokite: 2<sup>20</sup> × (0.5)<sup>19</sup>', a: '2<sup>20</sup> × (1/2)<sup>19</sup> = 2<sup>20</sup> / 2<sup>19</sup> = 2<sup>1</sup> = 2.' },
+                        { q: 'Lygiašonio trikampio pagrindas 10, o aukštinė į jį 12. Raskite šoninę kraštinę.', a: 'b² = 12² + (10/2)² = 144 + 25 = 169. b = 13.' },
+                        { q: 'Išspręskite: x(x-3) = x<sup>2</sup> - 9', a: 'x²-3x = x²-9; -3x=-9; x=3.' },
+                        { q: 'Išskaidykite: 3a<sup>2</sup> - 12', a: '3(a² - 4) = 3(a - 2)(a + 2).' },
+                        { q: 'Suprastinkite: (x<sup>-2</sup>y<sup>3</sup>)<sup>-1</sup>', a: 'x<sup>2</sup>y<sup>-3</sup> = x<sup>2</sup>/y<sup>3</sup>.' },
+                        { q: 'Stačiakampio plotas 48, viena kraštinė 6. Raskite įstrižainę.', a: 'Kita kraštinė = 48/6 = 8. d² = 6² + 8² = 36+64=100. d = 10.' },
+                        { q: 'Su kuriomis x reikšmėmis reiškinys (x - 5) / (2x + 8) neturi prasmės?', a: 'Kai vardiklis lygus nuliui: 2x+8=0; 2x=-8; x=-4.' },
+                        { q: 'Suprastinkite: (a+1)<sup>2</sup> - (a-1)<sup>2</sup>', a: '(a²+2a+1) - (a²-2a+1) = 4a.' },
+                        { q: 'Apskaičiuokite: (8<sup>1/3</sup> + 27<sup>1/3</sup>)<sup>2</sup>', a: '(2 + 3)² = 5² = 25.' },
+                        { q: 'Statusis trikampis, kurio vienas kampas 30°. Įžambinė 10. Raskite statinį prieš 30° kampą.', a: 'Statinis prieš 30° kampą lygus pusei įžambinės. a = 10/2 = 5.' },
+                        { q: 'Išspręskite lygtį: (x-4)<sup>2</sup> = x<sup>2</sup>', a: 'x²-8x+16 = x²; -8x+16=0; 16=8x; x=2.' },
+                        { q: 'Suprastinkite: (2x+y)(y-2x)', a: '(y+2x)(y-2x) = y² - (2x)² = y² - 4x².' },
+                    ],
+                    homework: [
+                        { q: 'Išspręskite lygtį: (2x - 1)<sup>2</sup> - 4(x - 2)(x + 2) = -11', a: '(4x²-4x+1) - 4(x²-4) = -11; 4x²-4x+1-4x²+16=-11; -4x+17=-11; -4x=-28; x=7.' },
+                        { q: 'Apskaičiuokite reiškinio 16x<sup>-2</sup> reikšmę, kai x=2<sup>-1</sup>.', a: '16 * (2<sup>-1</sup>)<sup>-2</sup> = 16 * 2<sup>2</sup> = 16 * 4 = 64.' },
+                        { q: 'Lygiašonės trapecijos pagrindai yra 8 ir 18, o perimetras 52. Raskite trapecijos plotą.', a: 'Šoninės kraštinės (52-8-18)/2 = 26/2=13. Aukštinė: h²=13²-((18-8)/2)²=169-25=144, h=12. S=(8+18)/2*12=13*12=156.' },
+                        { q: 'Išskaidykite: a<sup>3</sup> - 4a', a: 'a(a² - 4) = a(a-2)(a+2).' },
+                        { q: 'Trijų paeiliui einančių natūraliųjų skaičių suma lygi 63. Raskite tuos skaičius.', a: 'x + (x+1) + (x+2) = 63; 3x+3=63; 3x=60; x=20. Skaičiai: 20, 21, 22.' },
+                    ]
+                },
+            ]
+        };
+
+        const topicNav = document.getElementById('topic-nav').querySelector('ul');
+        const contentContainer = document.getElementById('content-container');
+
+        function generateProblemHTML(problems, showAnswers) {
+            return problems.map((p, index) => `
+                <li class="py-3 border-b border-slate-200">
+                    <div class="flex justify-between items-start">
+                        <p class="flex-1 pr-4">${index + 1}. ${p.q}</p>
+                        ${showAnswers ? `<button class="toggle-answer-btn text-sm bg-indigo-100 text-indigo-700 hover:bg-indigo-200 font-semibold px-3 py-1 rounded-full shrink-0">Rodyti atsakymą</button>` : ''}
+                    </div>
+                    ${showAnswers ? `<div class="answer mt-2 p-3 bg-green-50 text-green-800 border-l-4 border-green-500 rounded-r-md hidden">${p.a}</div>` : ''}
+                </li>
+            `).join('');
+        }
+
+        function renderContent(topic) {
+            const practiceHTML = generateProblemHTML(topic.practice, true);
+            const homeworkHTML = generateProblemHTML(topic.homework, false);
+
+            return `
+                <div id="topic-${topic.id}" class="topic-content">
+                    <h2 class="text-3xl font-bold text-slate-900 mb-4">${topic.title}</h2>
+                    <div class="border-b border-slate-200 mb-6">
+                        <nav class="flex space-x-4 -mb-px" aria-label="Tabs">
+                            <button data-tab="theory" class="tab-button active whitespace-nowrap py-3 px-1 text-sm font-medium">Teorija</button>
+                            <button data-tab="practice" class="tab-button whitespace-nowrap py-3 px-1 text-sm font-medium">Praktika (${topic.practice.length} užd.)</button>
+                            <button data-tab="homework" class="tab-button whitespace-nowrap py-3 px-1 text-sm font-medium">Namų Darbai (${topic.homework.length} užd.)</button>
+                        </nav>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-lg shadow-sm">
+                        <div id="theory-${topic.id}" class="content-section active">
+                            ${topic.theory}
+                        </div>
+                        <div id="practice-${topic.id}" class="content-section">
+                            <h3 class="text-xl font-semibold mb-4">Praktikos užduotys</h3>
+                            <ul class="space-y-2">${practiceHTML}</ul>
+                        </div>
+                        <div id="homework-${topic.id}" class="content-section">
+                            <h3 class="text-xl font-semibold mb-4">Namų darbų užduotys</h3>
+                            <ol class="list-decimal list-inside space-y-4">${homeworkHTML}</ol>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function setupEventListeners() {
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                    e.currentTarget.classList.add('active');
+                    
+                    document.querySelectorAll('.topic-content').forEach(content => content.classList.remove('active'));
+                    const topicId = e.currentTarget.getAttribute('href').substring(1);
+                    const targetContent = document.getElementById(`topic-${topicId}`);
+                    if (targetContent) {
+                        targetContent.classList.add('active');
+                    }
+                });
+            });
+
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const topicContent = e.currentTarget.closest('.topic-content');
+                    if (!topicContent) return;
+
+                    topicContent.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+                    e.currentTarget.classList.add('active');
+
+                    topicContent.querySelectorAll('.content-section').forEach(section => section.classList.remove('active'));
+                    const tab = e.currentTarget.dataset.tab;
+                    const baseTopicId = topicContent.id.replace('topic-', '');
+                    const targetSection = document.getElementById(`${tab}-${baseTopicId}`);
+                    if (targetSection) {
+                        targetSection.classList.add('active');
+                    }
+                });
+            });
+            
+            document.querySelectorAll('.toggle-answer-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const answerDiv = e.currentTarget.parentElement.nextElementSibling;
+                    answerDiv.classList.toggle('hidden');
+                    if(answerDiv.classList.contains('hidden')){
+                        e.currentTarget.textContent = 'Rodyti atsakymą';
+                    } else {
+                        e.currentTarget.textContent = 'Slėpti atsakymą';
+                    }
+                });
+            });
+        }
+
+        function init() {
+            data.topics.forEach((topic, index) => {
+                const li = document.createElement('li');
+                li.innerHTML = `<a href="#${topic.id}" class="nav-link block p-3 rounded-md text-slate-600 ${index === 0 ? 'active' : ''}">${topic.title}</a>`;
+                topicNav.appendChild(li);
+
+                contentContainer.innerHTML += renderContent(topic);
+            });
+            
+            document.querySelector('.topic-content').classList.add('active');
+            
+            setupEventListeners();
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
+
+
